@@ -6,7 +6,7 @@ module Nessus
       @connection
       @token
     end
-     
+
     def initialize(host, username = nil, password = nil, ssl_option = nil)
       uri = URI.parse(host)
       @connection = Net::HTTP.new(uri.host, uri.port)
@@ -16,15 +16,15 @@ module Nessus
       else
         @connection.verify_mode = OpenSSL::SSL::VERIFY_NONE
       end
-        
+
       yield @connection if block_given?
         authenticate(username, password) if username && password
     end
- 
+
     def authenticate(username, password)
       payload = {
-        :username => username, 
-        :password => password, 
+        :username => username,
+        :password => password,
         :json => 1
       }
       res = http_post(:uri=>"/session", :data=>payload)
@@ -41,7 +41,7 @@ module Nessus
     end
 
     alias_method :login, :authenticate
-     
+
     def authenticated
       if (@token && @token.include?('token='))
         return true
@@ -53,32 +53,32 @@ module Nessus
     def get_server_properties
       http_get(:uri=>"/server/properties", :fields=>x_cookie)
     end
-  
+
     def user_add(username, password, permissions, type)
       payload = {
-        :username => username, 
-        :password => password, 
-        :permissions => permissions, 
-        :type => type, 
+        :username => username,
+        :password => password,
+        :permissions => permissions,
+        :type => type,
         :json => 1
       }
       http_post(:uri=>"/users", :fields=>x_cookie, :data=>payload)
     end
-      
+
     def user_delete(user_id)
       res = http_delete(:uri=>"/users/#{user_id}", :fields=>x_cookie)
       return res.code
     end
-      
+
     def user_chpasswd(user_id, password)
       payload = {
-        :password => password, 
+        :password => password,
         :json => 1
       }
       res = http_put(:uri=>"/users/#{user_id}/chpasswd", :data=>payload, :fields=>x_cookie)
       return res.code
     end
-      
+
     def user_logout
       res = http_delete(:uri=>"/session", :fields=>x_cookie)
       return res.code
@@ -129,14 +129,16 @@ module Nessus
       http_get(:uri=>"/server/properties", :fields=>x_cookie)
     end
 
-    def scan_create(uuid, name, description, targets)
+    def scan_create(uuid, name, description, targets, policy_id = nil)
+      settings = {
+        :name => name,
+        :description => description,
+        :text_targets => targets
+      }
+      settings[:policy_id] = policy_id if policy_id
       payload = {
-        :uuid => uuid, 
-        :settings => {
-          :name => name, 
-          :description => description, 
-          :text_targets => targets
-          },
+        :uuid => uuid,
+        :settings => settings,
         :json => 1
       }.to_json
       http_post(:uri=>"/scans", :body=>payload, :fields=>x_cookie, :ctype=>'application/json')
