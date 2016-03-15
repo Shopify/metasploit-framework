@@ -10,8 +10,6 @@ module Nessus
     def initialize(host, username = nil, password = nil, ssl_option = nil)
       uri = URI.parse(host)
       @connection = Net::HTTP.new(uri.host, uri.port)
-      # test code
-      @connection.set_debug_output $stdout
       @connection.use_ssl = true
       if ssl_option == "ssl_verify"
         @connection.verify_mode = OpenSSL::SSL::VERIFY_PEER
