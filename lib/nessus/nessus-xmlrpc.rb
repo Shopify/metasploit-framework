@@ -186,7 +186,7 @@ module Nessus
       request.add_field("X-Cookie", @token)
       res = @connection.request(request)
       if res.code != "200"
-        raise "Nessus returned error code: " + res.code 
+        raise "Nessus returned error code: " + res.code
       else
         res = JSON.parse(res.body)
         return res
@@ -262,6 +262,9 @@ module Nessus
 
       begin
         res = @connection.request(req)
+        unless res.code == "200"
+          return {"history" => ["status" => "Error " + res.code]}
+        end
       rescue URI::InvalidURIError
         return json
       end
